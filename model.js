@@ -1,12 +1,12 @@
 
-
+//The Snake View 
 class SnookView {
     constructor (boardSide) {
-        this.boardSide = boardSide;
-        this.board = this.createBoard();
-        this.model = new SnookModel(boardSize);
-        this.initialData = this.model.getGameData();
-        this.updateBoard(this.initialData);
+        this.boardSide = boardSide; //The printed board is X by X size, where X is the initial boardSide given by the user.
+        this.board = this.createBoard(); //The display is initialized here.
+        this.model = new SnookModel(boardSize); //The model is initialized here.
+        this.initialData = this.model.getGameData(); //The model data is retrieved here.
+        this.updateBoard(this.initialData); //The display is updated via this method.
         this.directions = {
             up: [1, 0],
             left: [0, -1],
@@ -15,6 +15,7 @@ class SnookView {
         }
     }
 
+    //this method takes in data from the Model and prints it onto the browser. 
     createBoard = () => {
         let boardDiv = document.getElementsByClassName("board")[0];
         let board = new Array(this.boardSide);
@@ -34,6 +35,7 @@ class SnookView {
         return board;
     }
 
+    //This method takes in the directional input from the user (arrow keys)
     handleUserMove = (e) => {
         if (e.keyCode == 37) {
             this.model.setDirection(this.directions.left);
@@ -46,6 +48,7 @@ class SnookView {
         } 
     }
 
+    //This method takes the data from our Model and updates the board to match, first checking for the lose condition (snake hits wall or itself).
     updateBoard = (data) => {
         this.clearBoard(); 
         if (data.state === "lose") return window.alert(`Snook has died. Refresh to play again!`)
@@ -58,6 +61,7 @@ class SnookView {
         
     }
 
+    //This method clears the board state in preparation for a new state to be displayed.
     clearBoard = () => {
         for (let i = 0; i < this.boardSide; i++) {
             for (let j = 0; j < this.boardSide; j++) {
@@ -66,6 +70,7 @@ class SnookView {
         }
     }
 
+    //This is our main game loop.
     run = () => {
         let data = this.model.snookMove();
         this.updateBoard(data);
@@ -73,15 +78,17 @@ class SnookView {
     }
 };
 
+//The Snake Model
 class SnookModel {
     constructor(boardSize) {
-        this.boardSize = boardSize;
-        this.snook = this.createSnook();
-        this.snicker = this.createSnicker();
+        this.boardSize = boardSize; //The model is X by X size, where X is the initial boardSide given by the user.
+        this.snook = this.createSnook(); //The snake is initialized here.
+        this.snicker = this.createSnicker(); //The snicker (apple) is initialized here.
         this.state = "ongoing" // lose;
         this.direction = [0, 0];
     }
 
+    //This method creates the initial snake (in the middle of the board)
     createSnook = () => {
         const x = Math.floor(this.boardSize/2);
         const y = Math.floor(this.boardSize/2);
@@ -89,6 +96,7 @@ class SnookModel {
         return snook;
     }
     
+    //This method creates a snicker (apple) on a random cell that is not already inhabited by the snake.
     createSnicker = () => {
         let shouldRedo = false;
         const x = Math.floor(Math.random() * boardSize);
@@ -103,12 +111,15 @@ class SnookModel {
         return shouldRedo ?  this.createSnicker() : [x, y];
     }
 
+    //This method takes in the direction state provided by the user and updates our model with that new direction. 
+    //It also checks if the user decided to move backwards and doesn't allow the direction to update if so. 
     setDirection = (nextDirection) => {
         const oppositeDirection = nextDirection.map(x => x * -1);
         if (oppositeDirection[0] === this.direction[0] && oppositeDirection[1] === this.direction[1]) return;
         this.direction = nextDirection;
     }
 
+    //This is the initial game data sent to the display on initialization.
     getGameData = () => ({
         snook: this.snook,
         snicker: this.snicker,
@@ -116,7 +127,7 @@ class SnookModel {
         state: this.state
     })
     
-
+    //This method moves the snake in the given direction, creates a new snicker (apple) and grows the snake if the snicker was eaten, and sends the updated model back to the display.
     snookMove = () => {
         const newPosition = [this.snook[0][0] + this.direction[0], this.snook[0][1] + this.direction[1]];
         this.snook.unshift(newPosition);
@@ -134,6 +145,7 @@ class SnookModel {
         }
     }
 
+    //This method updates the state to the lose condition if the snake goes out of bounds, or if it runs into itself.
     updateState = () => {
         if(!this.isWithinBounds(this.snook[0][0], this.snook[0][1])) this.state = "lose";
         for (let i = 1; i < this.snook.length; i++) {
@@ -141,11 +153,11 @@ class SnookModel {
         }
     }
 
+    //This method checks if the snake head is within bounds of the board.
     isWithinBounds = (x, y) => x >= 0 && y >= 0 && x < this.boardSize && y < this.boardSize;
 }
 
 const boardSize = 10;
-
 
 let game = new SnookView(boardSize);
 game.run();
